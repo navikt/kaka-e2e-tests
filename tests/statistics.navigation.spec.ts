@@ -8,7 +8,7 @@ test.describe('Navigation', () => {
     await getLoggedInPage(page, userSaksbehandler);
   });
 
-  test.only('Totalstatistikk navigates to /statistikk/total', async ({ page }) => {
+  test('Totalstatistikk navigates to /statistikk/total', async ({ page }) => {
     const link = await page.waitForSelector('data-testid=statistikk-total-nav-link', { timeout: 10000 });
 
     await link.click();
