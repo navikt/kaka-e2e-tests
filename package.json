@@ -1,5 +1,5 @@
 {
-  "name": "e2e",
+  "name": "kaka-e2e-tests",
   "version": "1.0.0",
   "engines": {
     "node": ">=16"
@@ -8,28 +8,24 @@
     "test": "playwright test",
     "test-headed": "playwright test --headed --retries 0",
     "lint": "eslint . --color",
-    "lint-fix": "eslint . --color --fix",
-    "lint-staged": "lint-staged",
-    "prepare": "husky install"
+    "lint-fix": "eslint . --color --fix"
   },
   "dependencies": {
-    "@playwright/test": "^1.19.1",
-    "@slack/bolt": "^3.9.0",
-    "node-fetch": "^2.6.7",
-    "playwright": "^1.19.1"
+    "@playwright/test": "^1.25.0",
+    "@slack/bolt": "^3.12.1",
+    "node-fetch": "^2.6.5",
+    "playwright": "^1.25.0"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.1",
-    "@typescript-eslint/eslint-plugin": "^5.12.0",
-    "@typescript-eslint/parser": "^5.12.0",
-    "eslint": "^8.9.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.25.4",
+    "@types/node-fetch": "^2.6.2",
+    "@typescript-eslint/eslint-plugin": "^5.33.0",
+    "@typescript-eslint/parser": "^5.33.0",
+    "eslint": "^8.22.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
-    "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^7.0.4",
-    "lint-staged": "^12.3.4",
-    "prettier": "^2.5.1",
-    "typescript": "^4.5.5"
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1",
+    "typescript": "^4.7.4"
   }
 }
