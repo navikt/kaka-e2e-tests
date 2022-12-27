@@ -6,26 +6,25 @@
   },
   "scripts": {
     "test": "playwright test",
-    "test-headed": "playwright test --headed --retries 0",
+    "dev": "NODE_ENV=development playwright test --headed --retries 0 --workers 1",
     "lint": "eslint . --color",
     "lint-fix": "eslint . --color --fix"
   },
   "dependencies": {
-    "@playwright/test": "^1.25.0",
-    "@slack/bolt": "^3.12.1",
-    "node-fetch": "^2.6.5",
-    "playwright": "^1.25.0"
+    "@slack/bolt": "^3.12.2",
+    "dotenv": "^16.0.3",
+    "playwright": "^1.28.1"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.2",
-    "@typescript-eslint/eslint-plugin": "^5.33.0",
-    "@typescript-eslint/parser": "^5.33.0",
-    "eslint": "^8.22.0",
+    "@playwright/test": "^1.28.1",
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
+    "@typescript-eslint/parser": "^5.46.1",
+    "eslint": "^8.29.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "prettier": "^2.8.1",
+    "typescript": "^4.9.4"
   }
 }
