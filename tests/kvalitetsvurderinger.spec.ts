@@ -26,13 +26,13 @@ test.describe('Kvalitetsvurderinger', () => {
 
     // Create a new kvalitetsvurdering.
     await page.click('data-testid=new-kvalitetsvurdering-button', { timeout: 10000 });
-    await page.waitForURL(/^https:\/\/kaka.dev.nav.no\/kvalitetsvurderinger\/[\d\w-]+$/, { timeout: 10000 });
+    await page.waitForURL(/^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger\/[\d\w-]+$/, { timeout: 10000 });
     const urlAfterClick = getParsedUrl(page.url());
     const [, , id] = urlAfterClick.pathname.split('/');
 
     // Go back to list page.
     await page.goBack();
-    await page.waitForURL(/^https:\/\/kaka.dev.nav.no\/kvalitetsvurderinger#?$/, { timeout: 10000 });
+    await page.waitForURL(/^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger#?$/, { timeout: 10000 });
 
     // Check that the new kvalitetsvurdering is in the list.
     const paabegyntRow = await page.waitForSelector(
@@ -53,6 +53,6 @@ test.describe('Kvalitetsvurderinger', () => {
 
     // Delete the new kvalitetsvurdering.
     await page.click('data-testid=delete-button');
-    await page.waitForURL('https://kaka.dev.nav.no/kvalitetsvurderinger', { timeout: 3000 });
+    await page.waitForURL('https://kaka.intern.dev.nav.no/kvalitetsvurderinger', { timeout: 3000 });
   });
 });

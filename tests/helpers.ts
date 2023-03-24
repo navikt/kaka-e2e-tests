@@ -2,7 +2,7 @@ import { Page, expect } from '@playwright/test';
 import { User } from './users';
 
 export const goToAzure = async (page: Page, path = ''): Promise<Page> => {
-  const res = await page.goto(`https://kaka.dev.nav.no${path}`);
+  const res = await page.goto(`https://kaka.intern.dev.nav.no${path}`);
   expect(res).not.toBeNull();
   const url = res?.url();
   expect(url).toBeDefined();
@@ -28,7 +28,7 @@ export const getLoggedInPage = async (page: Page, { username, password }: User, 
   await azurePage.click('input[type=button]', { timeout: 3000 });
 
   // Browser should be redirected to KAKA.
-  expect(azurePage.url()).toMatch(`https://kaka.dev.nav.no${path}`);
+  expect(azurePage.url()).toMatch(`https://kaka.intern.dev.nav.no${path}`);
 
   return azurePage;
 };
