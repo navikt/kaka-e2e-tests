@@ -1,11 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { getParsedUrl } from './functions';
-import { getLoggedInPage } from './helpers';
-import { userSaksbehandler } from './users';
+import { UI_DOMAIN, getParsedUrl } from './functions';
 
 test.describe('Kvalitetsvurderinger', () => {
   test.beforeEach(async ({ page }) => {
-    await getLoggedInPage(page, userSaksbehandler, '/kvalitetsvurderinger');
+    await page.goto(`${UI_DOMAIN}/kvalitetsvurderinger`);
   });
 
   test('"Kvalitetsvurderinger" loads incomplete kvalitetsvurderinger', async ({ page }) => {

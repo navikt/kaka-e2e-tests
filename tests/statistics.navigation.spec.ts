@@ -1,11 +1,9 @@
 import test, { expect } from '@playwright/test';
-import { getParsedUrl } from './functions';
-import { getLoggedInPage } from './helpers';
-import { userSaksbehandler } from './users';
+import { UI_DOMAIN, getParsedUrl } from './functions';
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await getLoggedInPage(page, userSaksbehandler);
+    await page.goto(UI_DOMAIN);
   });
 
   test('Åpen statistikk navigates to /statistikk/aapen', async ({ page }) => {
