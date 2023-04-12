@@ -4,6 +4,9 @@ import { getLoggedInPage, goToAzure } from './helpers';
 import { userSaksbehandler } from './users';
 
 test.describe('Uauthorized', () => {
+  // Don't reuse logged in state for these tests.
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('Uauthorized load of KAKA without path should redirect to Azure login', async ({ page }) => {
     await goToAzure(page);
   });
