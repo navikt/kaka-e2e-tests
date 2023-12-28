@@ -53,4 +53,18 @@ test.describe('Kvalitetsvurderinger', () => {
     await page.click('data-testid=delete-button');
     await page.waitForURL('https://kaka.intern.dev.nav.no/kvalitetsvurderinger', { timeout: 3000 });
   });
+
+  test('Verify functionality of all input fields', async ({ page }) => {
+    // Navigate to the page
+    await page.goto(`${UI_DOMAIN}/kvalitetsvurdering`);
+
+    // Locate each input field, perform an action, and verify that the input field responds correctly
+    // This is a placeholder and should be replaced with the actual code
+    await page.type('input-field-selector', 'test input');
+    const inputValue = await page.$eval('input-field-selector', el => el.value);
+    expect(inputValue).toBe('test input');
+
+    // Reset any changes
+    await page.reload();
+  });
 });
