@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.32.3-focal
+FROM mcr.microsoft.com/playwright:v1.45.2-focal
 
 ARG CI
 ENV CI ${CI}
