@@ -2,6 +2,9 @@ import 'dotenv/config';
 
 export const IS_DEPLOYED = process.env.CI === 'true';
 
+export const envString = (name: string, required: boolean): string | undefined =>
+  required ? requiredEnvString(name) : optionalEnvString(name);
+
 export const optionalEnvString = (name: string): string | undefined => {
   const envVariable = process.env[name];
 

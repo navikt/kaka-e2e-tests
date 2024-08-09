@@ -4,10 +4,6 @@ export const getTestTitle = (test: TestCase) => {
   const [, , , description, testName] = test.titlePath();
   return `${description} - ${testName}`;
 };
-// test
-//   .titlePath()
-//   .filter((s) => s.length !== 0 || s === 'KAKA')
-//   .join(' - ');
 
 export const isNotNull = <T>(v: T | null): v is T => v !== null;
 
@@ -42,13 +38,14 @@ export const getTestStatusIcon = (test: TestCase, status: TestStatus): SlackIcon
 };
 
 export enum SlackIcon {
-  WARNING = ':warning:',
-  SUCCESS = ':white_check_mark:',
-  WAITING = ':hourglass:',
-  TIMED_OUT = ':timer_clock:',
-  QUESTION = ':question:',
-  TADA = ':tada:',
-  SKEPTIC = ':face_with_raised_eyebrow:',
+  WARNING = '⚠️',
+  SUCCESS = '✅',
+  WAITING = '⏳',
+  TIMED_OUT = '💤',
+  QUESTION = '❓',
+  TADA = '🎉',
+  SKEPTIC = '🤔',
+  RUNNING = ':meow_code:',
 }
 
 export const getStatusIcon = (status: TestStatus): SlackIcon => {
