@@ -1,182 +1,241 @@
+/* eslint-disable max-lines */
 import nodePath from 'path';
-import { FullConfig, FullResult, Reporter, Suite, TestCase, TestResult } from '@playwright/test/reporter';
+import { FullConfig, FullResult, Reporter, Suite, TestCase, TestResult, TestStep } from '@playwright/test/reporter';
 import { SlackMessageThread, getSlack } from '../slack/slack-client';
-import {
-  SlackIcon,
-  asyncForEach,
-  delay,
-  getFullStatusIcon,
-  getTestStatusIcon,
-  getTestTitle,
-  isNotNull,
-} from './functions';
+import { SlackIcon, asyncForEach, delay, getFullStatusIcon, getTestStatusIcon, getTestTitle } from './functions';
 
 interface TestSlackData {
   icon: SlackIcon;
-  status: string;
   title: string;
+  status: string;
+  steps: Map<string, TestSlackData>;
 }
 
 class SlackReporter implements Reporter {
   private slack = getSlack();
-  private thread?: SlackMessageThread;
-  private mainMessage = '';
-  private testStatuses: Map<TestCase, TestSlackData> = new Map();
-  private totalTests = 0;
-  private completedTests = 0;
-  private failedTestCount = 0;
-  private creatingSlackMessage = false;
-  private timer: NodeJS.Timeout | null = null;
+  private mainThread: SlackMessageThread | null = null;
+  private threads: Map<string, SlackMessageThread> = new Map();
+  private testStatuses: Map<string, TestSlackData> = new Map();
+  private tests: TestCase[] = [];
   private startTime = Date.now();
+  private name = '';
 
   private async setTestMessage(test: TestCase, status: TestSlackData) {
-    this.testStatuses.set(test, status);
-    return await this.updateMessage();
+    this.testStatuses.set(test.id, status);
+    const existingTestThread = this.threads.get(test.id);
+
+    if (existingTestThread !== undefined) {
+      return await existingTestThread.update(formatTest(status));
+    }
+
+    if (this.slack === null) {
+      throw new Error('Cannot post message. No Slack client.');
+    }
+
+    const testThread = await this.slack.postMessage(formatTest(status));
+    this.threads.set(test.id, testThread);
+
+    return testThread;
   }
 
   private async updateTestMessage(test: TestCase, status: Partial<Omit<TestSlackData, 'title'>>) {
-    const existing = this.testStatuses.get(test);
+    const previousStatus = this.testStatuses.get(test.id);
 
-    if (typeof existing === 'undefined') {
-      return;
+    if (previousStatus === undefined) {
+      throw new Error('Cannot update message with no previous status.');
     }
 
-    return await this.setTestMessage(test, { ...existing, ...status });
+    return await this.setTestMessage(test, { ...previousStatus, ...status });
   }
 
   private async updateMainMessage(msg: string) {
-    this.mainMessage = msg;
-    await this.updateMessage();
-  }
+    const mainMessage = `*${this.name} - ${msg}*`;
 
-  private async updateMessage() {
-    // Sort tests by title.
-    const orderedTests = Array.from(this.testStatuses.values())
-      .sort((a, b) => {
-        if (a.title < b.title) {
-          return -1;
-        }
-
-        if (a.title > b.title) {
-          return 1;
-        }
-
-        return 0;
-      })
-      .map(({ icon, status, title }) => `${icon} ${title} - \`${status}\``);
-
-    const message = [`*${this.mainMessage}*`, '', ...orderedTests].join('\n');
-
-    if (this.slack === null) {
-      console.log('');
-      console.log(message);
-      return;
-    }
-
-    // If it is currently creating a Slack message/thread.
-    if (this.creatingSlackMessage) {
-      if (this.timer !== null) {
-        clearTimeout(this.timer);
+    if (this.mainThread === null) {
+      if (this.slack === null) {
+        throw new Error('Cannot post main message. No Slack client.');
       }
 
-      // Retry in 100ms, hopefully the message/thread exists by then.
-      return new Promise<void>((res) => {
-        this.timer = setTimeout(async () => {
-          await this.updateMessage();
-          res();
-        }, 100);
-      });
+      this.mainThread = await this.slack.postMessage(mainMessage);
+
+      return this.mainThread;
     }
 
-    // If there is no Slack message/thread.
-    if (typeof this.thread === 'undefined' && !this.creatingSlackMessage) {
-      // If it has not yet started to create a Slack message/thread, do so and set the flag.
-      this.creatingSlackMessage = true;
-      this.thread = await this.slack?.postMessage(this.mainMessage);
-      this.creatingSlackMessage = false;
-    }
+    this.mainThread = await this.mainThread?.update(mainMessage);
 
-    await this.thread?.update(message);
+    return this.mainThread;
   }
 
   async onBegin(config: FullConfig, suite: Suite) {
-    const allTests = suite.allTests();
-    this.totalTests = allTests.length;
-    this.mainMessage = `Running ${this.totalTests} E2E tests with ${config.workers} workers...`;
-    allTests.forEach((test) =>
-      this.testStatuses.set(test, { icon: SlackIcon.WAITING, title: getTestTitle(test), status: 'Running...' })
-    );
-    this.updateMessage();
+    this.tests = suite.allTests();
+
+    this.name = config.projects.map(({ name }) => name).join(', ');
+
+    if (this.slack === null) {
+      return;
+    }
+
+    await this.updateMainMessage(`Running ${this.tests.length} E2E tests with ${config.workers} workers...`);
   }
 
   async onTestBegin(test: TestCase) {
-    this.updateTestMessage(test, { icon: SlackIcon.WAITING });
+    const exiting = this.testStatuses.get(test.id);
+
+    const isRetrying = test.results.some((r) => r.retry !== 0);
+
+    await this.setTestMessage(test, {
+      icon: SlackIcon.RUNNING,
+      title: getTestTitle(test),
+      status: isRetrying ? 'Retrying...' : 'Running...',
+      steps: exiting?.steps ?? new Map<string, TestSlackData>(),
+    });
+  }
+
+  async onStepBegin(test: TestCase, result: TestResult, step: TestStep) {
+    const status = this.testStatuses.get(test.id);
+
+    if (status === undefined || step.category !== 'test.step') {
+      return;
+    }
+
+    const isRetrying = test.results.some((r) => r.retry !== 0);
+
+    status.steps.set(`${test.id}-${step.title}`, {
+      title: step.title,
+      icon: SlackIcon.RUNNING,
+      status: isRetrying ? 'Retrying...' : 'Running...',
+      steps: new Map(),
+    });
+
+    return await this.updateTestMessage(test, status);
+  }
+
+  async onStepEnd(test: TestCase, result: TestResult, step: TestStep) {
+    const testStatus = this.testStatuses.get(test.id);
+
+    if (testStatus === undefined || !testStatus.steps.has(`${test.id}-${step.title}`)) {
+      return;
+    }
+
+    testStatus.steps.set(`${test.id}-${step.title}`, {
+      title: step.title,
+      icon: step.error === undefined ? SlackIcon.SUCCESS : SlackIcon.WARNING,
+      status: `${(step.duration / 1_000).toFixed(1)}s`,
+      steps: new Map(),
+    });
+
+    return await this.updateTestMessage(test, testStatus);
   }
 
   async onTestEnd(test: TestCase, result: TestResult) {
+    const testThread = this.threads.get(test.id);
     const icon = getTestStatusIcon(test, result.status);
     const title = getTestTitle(test);
-    this.updateTestMessage(test, { icon, status: `${result.duration / 1000} seconds` });
+    this.updateTestMessage(test, { icon, status: `${(result.duration / 1_000).toFixed(1)}s` });
 
-    if (result.status === 'failed' || result.status === 'timedOut') {
-      this.failedTestCount += 1;
+    const isFailed = result.status === 'failed' || result.status === 'timedOut';
 
-      const log = [`${title} - stacktrace`, '```', result?.error?.stack ?? 'No stacktrace', '```'];
-      await this.thread?.reply(log.join('\n'));
+    if (isFailed) {
+      if (typeof result?.error?.stack === 'undefined') {
+        const log = [`${title} - stacktrace`, '```', 'No stacktrace', '```'];
+        await testThread?.reply(log.join('\n'));
+      } else {
+        const partLength = 3_000;
 
-      const fileOrder = ['video', 'screenshot', 'trace'];
+        const firstStack = result.error.stack.substring(0, partLength);
+        const firstLog = [`${title} - stacktrace`, '```', firstStack, '```'];
+        await testThread?.reply(firstLog.join('\n'));
 
-      const sortedFiles = result.attachments
-        .map(({ name, path }) => {
-          if (typeof path === 'undefined') {
-            return null;
-          }
-
-          return { name, path };
-        })
-        .filter(isNotNull)
-        .sort((a, b) => fileOrder.indexOf(a.name) - fileOrder.indexOf(b.name));
-
-      await asyncForEach(sortedFiles, async ({ name, path }) => {
-        const filename = name + nodePath.extname(path);
-
-        if (name === 'trace') {
-          return await this.thread?.replyFilePath(
-            path,
-            `${title} - \`${name}\`\n\`npx playwright show-trace ${filename}\``,
-            test.title,
-            filename
-          );
+        for (let i = 1; i * partLength < result.error.stack.length; i++) {
+          const stack = result.error.stack.substring(i * partLength, (i + 1) * partLength);
+          const log = ['```', stack, '```'];
+          await testThread?.reply(log.join('\n'));
         }
-
-        return await this.thread?.replyFilePath(path, `${title} - ${name}`, test.title, filename);
-      });
+      }
     }
 
-    this.completedTests += 1;
+    const atttachments = isFailed ? prepareFailedResult(result) : preparePassedResult(result);
+
+    await asyncForEach(atttachments, async ({ name, path, body, contentType }) => {
+      if (contentType === 'text/plain' && body instanceof Buffer) {
+        return await testThread?.reply(
+          [`${SlackIcon.WARNING} *Warning*`, '```', body.toString('utf-8'), '```'].join('\n'),
+        );
+      }
+
+      if (path === undefined) {
+        return;
+      }
+
+      const filename = name + nodePath.extname(path);
+
+      if (name === 'trace') {
+        return await testThread?.replyFilePath(
+          path,
+          `${title} - \`${name}\`\n\`npx playwright show-trace ${filename}\``,
+          test.title,
+          filename,
+        );
+      }
+
+      return await testThread?.replyFilePath(path, `${title} - ${name}`, test.title, filename);
+    });
   }
 
   async onEnd(result: FullResult) {
     const icon = getFullStatusIcon(result);
-    const duration = (Date.now() - this.startTime) / 1000;
+    const duration = (Date.now() - this.startTime) / 1_000;
+    const tag = this.slack?.tagChannelOnError === 'true' ? '<!channel> ' : '';
 
     if (result.status === 'passed') {
-      await this.updateMainMessage(`${icon} All ${this.totalTests} tests succeeded! \`${duration} seconds\``);
+      await this.updateMainMessage(`${icon} All ${this.tests.length} tests succeeded! \`${duration}s\``);
     } else if (result.status === 'failed') {
       await this.updateMainMessage(
-        `<!channel> ${icon} ${this.failedTestCount} of ${this.totalTests} tests failed! \`${duration} seconds\``
+        `${tag} ${icon} ${this.tests.filter((t) => !t.ok()).length} of ${this.tests.length} tests failed! \`${duration}s\``,
       );
     } else if (result.status === 'timedout') {
       await this.updateMainMessage(
-        `<!channel> ${icon} Global timeout! ${this.failedTestCount} of ${this.totalTests} tests failed! \`${duration} seconds\``
+        `${tag} ${icon} Global timeout! ${this.tests.filter((t) => !t.ok()).length} of ${this.tests.length} tests failed! \`${duration}s\``,
+      );
+    } else if (result.status === 'interrupted') {
+      await this.updateMainMessage(
+        `${tag} ${icon} Interrupted! ${this.tests.filter((t) => !t.ok()).length} of ${this.tests.length} tests failed! \`${duration}s\``,
       );
     }
 
     // Wait for all tests to be done sending to Slack.
-    while (this.completedTests < this.totalTests) {
-      await delay(200);
-    }
+    await delay(2_000);
   }
 }
 
+const ORDER = ['warningMessage', 'video', 'screenshot', 'trace'];
+
+const prepareFailedResult = (result: TestResult) =>
+  result.attachments.sort((a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name));
+
+const preparePassedResult = (result: TestResult) => result.attachments.filter(({ name }) => name === 'warningMessage');
+
+const formatTest = ({ icon, status, title, steps }: TestSlackData): string => {
+  if (steps.size === 0) {
+    return `${icon} ${title} \`${status}\``;
+  }
+
+  return `${icon} ${title} \`${status}\`\n${formatSteps(Array.from(steps.values()))}`;
+};
+
+const formatSteps = (steps: TestSlackData[], level = 1): string => {
+  const indent = '\t'.repeat(level);
+
+  return steps
+    .map((step) => {
+      if (step.steps.size === 0) {
+        return `${indent}${step.icon} ${step.title} \`${step.status}\``;
+      }
+
+      return `${indent}${step.icon} ${step.title} \`${step.status}\`\n${formatSteps(Array.from(steps.values()), level + 1)}`;
+    })
+    .join('\n');
+};
+
+// eslint-disable-next-line import/no-unused-modules, import/no-default-export
 export default SlackReporter;
