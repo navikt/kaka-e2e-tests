@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { UI_DOMAIN, getParsedUrl } from './functions';
 
+const KVALITETSVURDERING_REGEX = /^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger\/[\d\w-]+$/;
+const KVALITETSVURDERINGER_REGEX = /^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger#?$/;
+
 test.describe('Kvalitetsvurderinger', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${UI_DOMAIN}/kvalitetsvurderinger`);
@@ -24,18 +27,18 @@ test.describe('Kvalitetsvurderinger', () => {
 
     // Create a new kvalitetsvurdering.
     await page.click('data-testid=new-kvalitetsvurdering-button', { timeout: 10000 });
-    await page.waitForURL(/^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger\/[\d\w-]+$/, { timeout: 10000 });
+    await page.waitForURL(KVALITETSVURDERING_REGEX, { timeout: 10000 });
     const urlAfterClick = getParsedUrl(page.url());
     const [, , id] = urlAfterClick.pathname.split('/');
 
     // Go back to list page.
     await page.goBack();
-    await page.waitForURL(/^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger#?$/, { timeout: 10000 });
+    await page.waitForURL(KVALITETSVURDERINGER_REGEX, { timeout: 10000 });
 
     // Check that the new kvalitetsvurdering is in the list.
     const paabegyntRow = await page.waitForSelector(
       `[data-testid="paabegynte-vurderinger-row"][data-saksdata-id="${id}"]`,
-      { timeout: 2000 }
+      { timeout: 2000 },
     );
 
     // Open the new kvalitetsvurdering.
