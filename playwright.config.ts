@@ -1,6 +1,7 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
+  outputDir: '/tmp/test-results',
   timeout: 600000,
   globalTimeout: 600000,
   name: 'KAKA',
@@ -13,7 +14,7 @@ const config: PlaywrightTestConfig = {
     screenshot: 'on',
     trace: 'on',
     locale: 'no-NB',
-    storageState: './state.json', // File for storing cookies and localStorage (per origin). Speeds up test execution, as the test browser no longer needs to log in for every test.
+    storageState: '/tmp/state.json', // File for storing cookies and localStorage (per origin). Speeds up test execution, as the test browser no longer needs to log in for every test.
   },
   // https://playwright.dev/docs/test-advanced#global-setup-and-teardown
   globalSetup: require.resolve('./setup/global-setup'),
