@@ -5,7 +5,7 @@ const config: PlaywrightTestConfig = {
   timeout: 600000,
   globalTimeout: 600000,
   name: 'KAKA',
-  reporter: [['list'], ['./reporters/slack-reporter.ts']],
+  reporter: [['list'], ['./reporters/slack-reporter.ts'], ['./reporters/status.ts']],
   retries: 1,
   testDir: './tests',
   use: {
