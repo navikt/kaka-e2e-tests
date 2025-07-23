@@ -2,14 +2,14 @@ import type { PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   outputDir: '/tmp/test-results',
-  timeout: 600000,
-  globalTimeout: 600000,
+  timeout: 60_000,
+  globalTimeout: 300_000,
   name: 'KAKA',
   reporter: [['list'], ['./reporters/slack-reporter.ts'], ['./reporters/status.ts']],
   retries: 1,
   testDir: './tests',
   use: {
-    actionTimeout: 10000,
+    actionTimeout: 10_000,
     video: 'on',
     screenshot: 'on',
     trace: 'on',
