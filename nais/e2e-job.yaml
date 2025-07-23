@@ -8,6 +8,7 @@ metadata:
     e2e: kaka
     job_id: {{jobid}}
 spec:
+  ttl: 6m
   backoffLimit: 0
   resources:
     requests:
