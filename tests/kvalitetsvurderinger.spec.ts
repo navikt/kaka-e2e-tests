@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { UI_DOMAIN, getParsedUrl } from './functions';
+import { getParsedUrl, UI_DOMAIN } from './functions';
 
 const KVALITETSVURDERING_REGEX = /^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger\/[\d\w-]+$/;
 const KVALITETSVURDERINGER_REGEX = /^https:\/\/kaka.intern.dev.nav.no\/kvalitetsvurderinger#?$/;
