@@ -1,6 +1,25 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "root": true,
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": ["**"]
+          }
+        }
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -11,7 +30,8 @@
         "noUndeclaredDependencies": "off",
         "useImportExtensions": "off",
         "noUndeclaredVariables": "off",
-        "noNodejsModules": "off"
+        "noNodejsModules": "off",
+        "noUnusedImports": { "level": "on", "fix": "safe", "options": {} }
       },
       "style": {
         "noImplicitBoolean": "off",
