@@ -2,12 +2,12 @@
   "name": "kaka-e2e-tests",
   "version": "1.0.0",
   "engines": {
-    "node": ">=16"
+    "node": ">=24"
   },
   "scripts": {
-    "test": "playwright test",
-    "dev": "NODE_ENV=test playwright test --headed --retries 0 --workers 1",
-    "local": "playwright test --headed --retries 0 --workers 1",
+    "test": "TARGET=dev CONFIG=nais playwright test",
+    "dev": "TARGET=dev CONFIG=local playwright test",
+    "local": "TARGET=local CONFIG=local playwright test",
     "typecheck": "tsc --noEmit",
     "lint": "biome check"
   },
