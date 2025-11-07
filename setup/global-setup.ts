@@ -1,6 +1,6 @@
 import { chromium, type Page } from '@playwright/test';
 import type { FullConfig } from '@playwright/test/reporter';
-import { DEV_DOMAIN, USE_LOCALHOST } from './../tests/functions';
+import { DEV_DOMAIN, USE_LOCALHOST } from '../tests/functions';
 import { getLoggedInPage } from '../tests/helpers';
 import { userSaksbehandler } from '../tests/users';
 
