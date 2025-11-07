@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { DEV_DOMAIN, LOCAL_DOMAIN, UI_DOMAIN, USE_DEV } from './functions';
+import { DEV_DOMAIN, LOCAL_DOMAIN, UI_DOMAIN, USE_LOCALHOST } from './functions';
 import type { User } from './users';
 
 export const goToAzure = async (page: Page, path = ''): Promise<Page> => {
@@ -25,11 +25,8 @@ export const getLoggedInPage = async (page: Page, { username, password }: User, 
   // Click "Sign in".
   await azurePage.click('input[type=submit]');
 
-  // Click "No" to remember login.
-  await azurePage.click('input[type=button]');
-
   // Force navigation to local domain, if not using dev domain.
-  if (!USE_DEV) {
+  if (USE_LOCALHOST) {
     await page.goto(`${LOCAL_DOMAIN}${path}`);
   }
 
