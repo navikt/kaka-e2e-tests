@@ -8,7 +8,7 @@
     "test": "TARGET=dev CONFIG=nais playwright test",
     "dev": "TARGET=dev CONFIG=local playwright test",
     "local": "TARGET=local CONFIG=local playwright test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc",
     "lint": "biome check"
   },
   "dependencies": {
