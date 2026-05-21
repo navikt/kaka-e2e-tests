@@ -8,9 +8,16 @@ import type {
   TestResult,
   TestStep,
 } from '@playwright/test/reporter';
-import { getSlack, type SlackMessageThread } from '../slack/slack-client';
-import { asyncForEach, delay, getFullStatusIcon, getTestStatusIcon, getTestTitle, SlackIcon } from './functions';
-import { GITHUB_ACTOR, GITHUB_REPOSITORY, VERSION } from './trigger';
+import {
+  asyncForEach,
+  delay,
+  getFullStatusIcon,
+  getTestStatusIcon,
+  getTestTitle,
+  SlackIcon,
+} from '@/reporters/functions';
+import { GITHUB_ACTOR, GITHUB_REPOSITORY, VERSION } from '@/reporters/trigger';
+import { getSlack, type SlackMessageThread } from '@/slack/slack-client';
 
 interface TestSlackData {
   icon: SlackIcon;
