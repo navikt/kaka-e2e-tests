@@ -1,26 +1,44 @@
-# KAKA E2E tests
+# Kaka E2E tests
+
 This app uses [Playwright](https://playwright.dev/) to log in as a test user in development and test that the app behaves as expected.
 
-## Running the tests
-`npm test`
-
-The app depends on a few environment variables to send messages to Slack.
-Without these it will output the same message updates to the console, it will be repeated a lot.
-
-The test user is also retrieved from the environment.
-
-### Local
-Locally the E2E application will not send messages to Slack. The Slack config is therefore not needed.
+## Running locally
 
 ```
 export SAKSBEHANDLER_USERNAME=<email>
 export SAKSBEHANDLER_PASSWORD=<password>
 ```
 
-### GCP
+... or create an `.env` file with the following content:
+
+```
+SAKSBEHANDLER_USERNAME=<email>
+SAKSBEHANDLER_PASSWORD=<password>
+```
+
+### Against `dev`
+
+`bun dev` or `bun dev --headed`
+
+Will run the tests against [kaka.intern.dev.nav.no](https://kaka.intern.dev.nav.no) with the local config.
+
+### Against `localhost:8062`
+
+`bun local` or `bun local --headed`
+
+Will run the tests against [localhost:8062](http://localhost:8062) with local config.
+
+### Just like in NAIS
+
+`bun test` or `bun test --headed`
+
+Will run the tests against [kaka.intern.dev.nav.no](https://kaka.intern.dev.nav.no) with the same config as in NAIS.
+
+## GCP
+
 ```
 kubectl create configmap slack-e2e-configmap \
---from-literal=kaka_notifications_channel=klage-notifications
+--from-literal=klage_notifications_channel=klage-notifications
 
 kubectl create secret generic slack-e2e-secrets \
 --from-literal=slack_e2e_token=<token> \
@@ -28,10 +46,11 @@ kubectl create secret generic slack-e2e-secrets \
 
 kubectl create secret generic kaka-e2e-test-users \
 --from-literal=SAKSBEHANDLER_USERNAME=<email> \
---from=literal=SAKSBEHANDLER_PASSWORD=<password>
+--from-literal=SAKSBEHANDLER_PASSWORD=<password>
 ```
 
-As a one-time job, before the tests can run, we must apply the networkpolicy (nais/networkpolicy.yaml)
+As a one-time job, before the tests can run, we must apply the network policy:
+
 ```
-kubectl apply -f networkpolicy.yaml -n klage
+kubectl apply -f nais/e2e-network-policy.yaml -n klage
 ```
