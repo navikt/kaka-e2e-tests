@@ -3,3 +3,6 @@ exact = true
 minimumReleaseAge = 259200
 minimumReleaseAgeExcludes = ["@navikt/klage-e2e-reporters"]
 ignoreScripts = true
+
+[install.scopes]
+"@navikt" = { url = "https://npm.pkg.github.com" }
